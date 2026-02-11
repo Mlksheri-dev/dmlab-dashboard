@@ -5,53 +5,36 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 0 0% 3%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 4%;
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 4%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 210 100% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 100% 35%;
-    --secondary-foreground: 0 0% 100%;
-    --accent: 45 100% 50%;
-    --accent-foreground: 0 0% 0%;
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 70%;
-    --destructive: 0 100% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --success: 150 100% 50%;
-    --success-foreground: 0 0% 0%;
-    --border: 0 0% 15%;
-    --input: 0 0% 10%;
-    --ring: 210 100% 55%;
-    --radius: 1.25rem;
-  }
 
-  .light {
-    --background: 0 0% 98%;
-    --foreground: 0 0% 10%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
-    --primary: 210 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 100% 35%;
-    --secondary-foreground: 0 0% 100%;
-    --accent: 45 100% 45%;
-    --accent-foreground: 0 0% 10%;
-    --muted: 0 0% 94%;
-    --muted-foreground: 0 0% 40%;
-    --destructive: 0 100% 45%;
-    --destructive-foreground: 0 0% 100%;
-    --success: 150 100% 40%;
-    --success-foreground: 0 0% 100%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 210 100% 50%;
+  :root,
+  .dark {
+    --background: 237 41% 15%;
+    /* Deep Navy #171836 */
+    --foreground: 0 0% 98%;
+    --card: 237 41% 20%;
+    /* Navy Card #1E2048 */
+    --card-foreground: 0 0% 98%;
+    --popover: 237 41% 20%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 34 95% 55%;
+    /* Golden #f99a1d */
+    --primary-foreground: 0 0% 0%;
+    /* Black text for gold buttons */
+    --secondary: 204 98% 22%;
+    /* ITU Blue */
+    --secondary-foreground: 210 40% 98%;
+    --accent: 34 95% 55%;
+    --accent-foreground: 0 0% 0%;
+    --muted: 237 41% 25%;
+    --muted-foreground: 215 16% 70%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --success: 142 71% 45%;
+    --success-foreground: 210 40% 98%;
+    --border: 237 41% 25%;
+    --input: 237 41% 25%;
+    --ring: 34 95% 55%;
+    --radius: 0.5rem;
   }
 }
 
@@ -61,18 +44,8 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased selection:bg-primary/30;
-    font-family: 'Outfit', 'Inter', sans-serif;
-    background-image:
-      radial-gradient(at 0% 0%, hsla(210, 100%, 15%, 0.15) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, hsla(45, 100%, 10%, 0.1) 0px, transparent 50%);
-    background-attachment: fixed;
-  }
-
-  .light body {
-    background-image:
-      radial-gradient(at 0% 0%, hsla(210, 100%, 45%, 0.05) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, hsla(45, 100%, 40%, 0.05) 0px, transparent 50%);
+    @apply bg-background text-foreground antialiased selection:bg-primary/20;
+    font-family: 'Inter', sans-serif;
   }
 
   h1,
@@ -80,7 +53,8 @@
   h3,
   h4,
   .font-display {
-    font-family: 'Outfit', sans-serif;
+    @apply font-bold tracking-tight text-primary;
+    font-family: 'Outfit', 'Inter', sans-serif;
   }
 
   .font-mono {
@@ -90,49 +64,27 @@
 
 @layer utilities {
   .glass-card {
-    @apply bg-card/60 backdrop-blur-2xl border border-border/50 shadow-2xl;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-  }
-
-  .light .glass-card {
-    @apply bg-white/80 border-white/90 shadow-2xl;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
+    @apply bg-card/60 backdrop-blur-md border border-border/40 shadow-xl transition-all duration-300;
   }
 
   .premium-border {
-    @apply border border-border/80 hover:border-primary/50 transition-all duration-300;
+    @apply border border-border hover:border-primary/30 transition-all duration-300;
   }
 
   .glow-blue {
-    box-shadow: 0 0 25px hsl(210 100% 52% / 0.3);
+    box-shadow: 0 0 15px rgba(1, 65, 109, 0.1);
   }
 
-  .glow-yellow {
-    box-shadow: 0 0 25px hsl(45 100% 50% / 0.3);
+  .glow-gold {
+    box-shadow: 0 0 15px rgba(197, 160, 89, 0.2);
   }
 
-  .glow-purple {
-    box-shadow: 0 0 25px hsl(230 100% 60% / 0.3);
-  }
-
-  .text-glow-yellow {
-    text-shadow: 0 0 10px hsl(45 100% 40% / 0.5);
+  .text-glow-gold {
+    text-shadow: 0 0 8px rgba(197, 160, 89, 0.3);
   }
 
   .text-glow-blue {
-    text-shadow: 0 0 10px hsl(210 100% 40% / 0.5);
-  }
-
-  .glow-pink {
-    box-shadow: 0 0 25px hsla(330, 100%, 60%, 0.3);
-  }
-
-  .glow-cyan {
-    box-shadow: 0 0 25px hsla(180, 100%, 50%, 0.3);
-  }
-
-  .text-glow-pink {
-    text-shadow: 0 0 10px hsla(330, 100%, 60%, 0.5);
+    text-shadow: 0 0 8px rgba(1, 65, 109, 0.2);
   }
 }
 

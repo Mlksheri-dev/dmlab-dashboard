@@ -38,11 +38,11 @@ const App = () => (
                 </ProtectedRoute>
               }
             >
-              <Route index element={<DashboardOverview />} />
+              <Route index element={<LabDashboard />} />
               <Route path="cities" element={<LocationsPage />} />
               <Route path="labs" element={<LabsPage />} />
               <Route path="devices" element={<DevicesPage />} />
-              <Route path="lab-analytics" element={<LabDashboard />} />
+              <Route path="overview" element={<DashboardOverview />} />
               <Route path="lab-summary/:city/:lab" element={<LabSummaryPage />} />
               <Route path="pc/:id" element={<PCDetailPage />} />
               <Route path="pc/:id/history/:date" element={<PCHistoryDetailPage />} />
