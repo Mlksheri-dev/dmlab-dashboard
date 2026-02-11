@@ -53,89 +53,64 @@ export default function FilteredDevicesPage() {
   }
 
   return (
-    <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-700 bg-background min-h-screen">
+    <div className="p-4 md:p-8">
       {/* Header */}
-      <div className="flex items-center gap-6 pb-6 border-b border-border">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate('/dashboard')}
-          className="rounded-lg bg-card border border-border hover:bg-primary/10 hover:text-primary transition-all group shadow-sm"
-        >
-          <ArrowLeft className="w-5 h-5 transition-transform group-hover:-translate-x-1" />
+      <div className="flex items-center gap-4 mb-8">
+        <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+          <ArrowLeft className="w-5 h-5" />
         </Button>
-        <div className="flex items-center gap-4">
-          <div className="p-3 rounded-lg bg-primary text-black shadow-sm">
-            {getIcon()}
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white uppercase font-display">{getTitle()}</h1>
-            <p className="text-[10px] text-white/60 font-bold uppercase tracking-widest opacity-60">System Network Audit Segment</p>
-          </div>
+        <div className="flex items-center gap-3">
+          {getIcon()}
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">{getTitle()}</h1>
         </div>
-        <div className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border shadow-sm">
-          <span className="text-[10px] font-bold text-white uppercase tracking-wider">Count:</span>
-          <span className="text-sm font-bold text-white">{filteredDevices.length} Nodes</span>
-        </div>
+        <span className="ml-auto text-sm font-medium px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground">
+          {filteredDevices.length} devices
+        </span>
       </div>
 
       {/* Devices Table */}
       {filteredDevices.length === 0 ? (
-        <div className="bg-card border border-border rounded-2xl p-16 text-center shadow-sm">
-          <Monitor className="w-16 h-16 text-primary/10 mx-auto mb-6" />
-          <h3 className="text-xl font-bold text-primary uppercase tracking-tight mb-2">No {filter} nodes identified</h3>
-          <p className="text-muted-foreground text-sm max-w-xs mx-auto">All system nodes in this category are currently non-responsive or de-registered.</p>
+        <div className="glass-card rounded-xl p-12 text-center">
+          <Monitor className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">No {filter} devices</h3>
+          <p className="text-muted-foreground">Devices will appear here when available.</p>
         </div>
       ) : (
-        <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
+        <div className="glass-card rounded-xl p-4 md:p-6">
+          <div className="rounded-lg border border-border overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted hover:bg-muted border-b border-border">
-                  <TableHead className="w-20 px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-primary/60">Status</TableHead>
-                  <TableHead className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-primary/60">Node Hostname</TableHead>
-                  <TableHead className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-primary/60">Hardware ID (MAC)</TableHead>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="whitespace-nowrap">Status</TableHead>
+                  <TableHead className="whitespace-nowrap">Hostname</TableHead>
+                  <TableHead className="whitespace-nowrap">MAC Address</TableHead>
                   {filter === 'online' && (
-                    <TableHead className="px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-primary/60 text-right">Uptime Duration</TableHead>
+                    <TableHead className="whitespace-nowrap">Online Since</TableHead>
                   )}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredDevices.map((device) => {
                   const sessionStart = device.current_session?.start_time;
-                  const isOnline = device.status === 'online';
                   return (
                     <TableRow
                       key={device.id}
-                      className="cursor-pointer hover:bg-primary/[0.02] transition-colors border-b border-border last:border-0"
+                      className="cursor-pointer hover:bg-muted/50 transition-colors"
                       onClick={() => navigate(`/dashboard/pc/${device.id}`)}
                     >
-                      <TableCell className="px-8 py-5">
-                        <div className="flex justify-center">
-                          <div className={cn(
-                            'w-2.5 h-2.5 rounded-full ring-4 ring-offset-0',
-                            isOnline
-                              ? 'bg-emerald-500 ring-emerald-500/10 animate-pulse'
-                              : 'bg-gray-300 ring-gray-300/10'
-                          )} />
-                        </div>
+                      <TableCell>
+                        <div className={cn(
+                          'w-3 h-3 rounded-full',
+                          device.status === 'online' ? 'bg-success animate-pulse-online' : 'bg-muted-foreground'
+                        )} />
                       </TableCell>
-                      <TableCell className="px-8 py-5">
-                        <div className="flex flex-col">
-                          <span className="font-bold text-white uppercase tracking-tight">{device.hostname}</span>
-                          <span className="text-[9px] text-white/60 font-bold uppercase tracking-widest">Active Station</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-8 py-5">
-                        <span className="font-mono text-xs text-muted-foreground bg-muted/20 px-2 py-1 rounded border border-border">
-                          {device.mac_address}
-                        </span>
+                      <TableCell className="font-medium">{device.hostname}</TableCell>
+                      <TableCell className="font-mono text-sm text-muted-foreground">
+                        {device.mac_address}
                       </TableCell>
                       {filter === 'online' && (
-                        <TableCell className="px-8 py-5 text-right">
-                          <span className="font-bold text-emerald-500 text-sm">
-                            {sessionStart ? formatDetailedDuration(sessionStart, device.server_time) : '—'}
-                          </span>
+                        <TableCell className="font-mono text-sm text-success">
+                          {sessionStart ? formatDetailedDuration(sessionStart, device.server_time) : '—'}
                         </TableCell>
                       )}
                     </TableRow>

@@ -42,7 +42,7 @@ export function ThemeToggle() {
                 ) : (
                     <Moon className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
                 )}
-                <span className="text-[10px] font-black uppercase tracking-[0.25em]">
+                <span className="text-[10px] font-black uppercase tracking-[0.25em] italic">
                     {isLight ? 'Light Mode' : 'Dark Mode'}
                 </span>
             </div>

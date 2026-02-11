@@ -39,7 +39,7 @@ export function CriticalAlertBanner() {
                             <AlertTriangle size={20} />
                         </div>
                         <div>
-                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-red-500">Critical Node Disconnect</h4>
+                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-red-500 italic">Critical Node Disconnect</h4>
                             <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-0.5">
                                 {criticalOffline.length === 1
                                     ? `NODE [${criticalOffline[0].pc_name}] HAS TERMINATED SIGNAL`
