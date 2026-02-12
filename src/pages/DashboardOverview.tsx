@@ -44,30 +44,28 @@ export default function DashboardOverview() {
   const loading = locLoading || statsLoading;
 
   return (
-    <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-700">
-      <header className="pb-6 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-700 bg-background min-h-screen">
+      <header className="pb-6 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black italic tracking-tighter uppercase text-foreground">
-            TOTAL <span className="text-primary">CITY</span>
+          <h1 className="text-3xl font-bold tracking-tight text-white uppercase font-display">
+            CITYWISE <span className="text-white/80">OVERVIEW</span>
           </h1>
-          <p className="text-muted-foreground font-medium mt-1 uppercase tracking-widest text-[10px]">
-            Operational Overview & System Health
-          </p>
+
         </div>
 
         <Button
           onClick={() => handleGenerateReport(stats, locations)}
-          className="bg-card/40 hover:bg-card/60 border border-border/40 text-foreground gap-2 px-6 rounded-2xl h-12 text-[10px] font-black uppercase tracking-widest transition-all group backdrop-blur-xl"
+          className="bg-white hover:bg-white/90 text-black gap-2 px-6 rounded-lg h-10 text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm"
         >
-          <FileText size={16} className="text-primary group-hover:scale-110 transition-transform" />
-          generate dailybasePDF
+          <FileText size={16} className="text-black" />
+          Generate System Audit
         </Button>
       </header>
 
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {loading ? (
-          [...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 rounded-3xl" />)
+          [...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)
         ) : (
           <>
             <div onClick={() => navigate('/dashboard/cities')} className="cursor-pointer">
@@ -79,14 +77,14 @@ export default function DashboardOverview() {
             <div onClick={() => navigate('/dashboard/devices?status=offline')} className="cursor-pointer">
               <StatsCard title="Offline PCs" value={stats?.offline_devices || 0} icon={WifiOff} variant="blue" />
             </div>
-            <div className="glass-card premium-border rounded-3xl p-5 flex items-center gap-4 hover:bg-primary/5 transition-all border-dashed border-primary/20 bg-background/50">
-              <div className="p-3 rounded-2xl bg-primary/20 text-primary">
-                <Activity size={24} className="animate-pulse" />
+            <div className="bg-card border border-border rounded-2xl p-6 flex items-center gap-4 shadow-sm hover:shadow-md transition-all">
+              <div className="p-3 rounded-lg bg-primary/10 text-primary">
+                <Activity size={24} />
               </div>
               <div>
-                <p className="text-[9px] font-black opacity-40 uppercase tracking-widest mb-0.5">Global Score</p>
-                <p className="text-2xl font-black italic text-foreground tracking-tighter">98<span className="text-primary">%</span></p>
-                <p className="text-[7px] font-bold text-primary uppercase">Optimized Protocol</p>
+                <p className="text-[10px] font-bold text-white/60 uppercase tracking-wider mb-0.5">System Health</p>
+                <p className="text-2xl font-bold text-white tracking-tight">98<span className="text-white/60">%</span></p>
+                <p className="text-[8px] font-bold text-emerald-400 uppercase tracking-widest">Optimal</p>
               </div>
             </div>
           </>
@@ -96,22 +94,22 @@ export default function DashboardOverview() {
       <section className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/20 text-primary glow-blue">
+            <div className="p-2 rounded-lg bg-primary text-white">
               <LayoutGrid size={20} />
             </div>
-            <h2 className="text-xl font-black italic tracking-tighter uppercase text-foreground">System Nodes</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase text-white font-display">Regional Nodes</h2>
           </div>
-          <span className="text-[10px] font-bold opacity-60 uppercase tracking-widest bg-muted py-1 px-3 rounded-full border border-border">
-            {locations.length} Regions Active
+          <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest bg-card py-1.5 px-4 rounded-lg border border-border shadow-sm">
+            {locations.length} ACTIVE REGIONS
           </span>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-64 rounded-[2.5rem]" />)}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-64 rounded-2xl" />)}
           </div>
         ) : (locations && locations.length > 0) ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {locations.map((loc: any) => {
               if (!loc) return null;
               const online = loc.online || 0;
@@ -122,34 +120,34 @@ export default function DashboardOverview() {
                 <Card
                   key={loc.city}
                   onClick={() => navigate(`/dashboard/devices?city=${loc.city}`)}
-                  className="group relative overflow-hidden glass-card cursor-pointer hover:border-primary/50 transition-all hover:translate-y-[-4px] premium-border rounded-[2rem] min-h-[220px]"
+                  className="group relative overflow-hidden bg-card cursor-pointer border border-border hover:border-primary/40 transition-all hover:translate-y-[-4px] shadow-sm hover:shadow-lg rounded-2xl min-h-[200px]"
                 >
                   <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
                     <div className="flex items-start justify-between">
-                      <h3 className="text-xl font-black italic tracking-tighter uppercase text-foreground group-hover:text-primary transition-colors truncate pr-2">
+                      <h3 className="text-lg font-bold tracking-tight text-white group-hover:text-white/80 transition-colors truncate">
                         {loc.city}
                       </h3>
-                      <MoreVertical size={16} className="opacity-20" />
+                      <MoreVertical size={16} className="text-white/30" />
                     </div>
 
-                    <div className="flex justify-center flex-1 items-center">
+                    <div className="flex justify-center flex-1 items-center opacity-40">
                       <MiniWaveChart
-                        color="#3b82f6"
+                        color="#01416D"
                         width={180}
-                        height={50}
+                        height={40}
                         intensity={intensity}
-                        showGrid={true}
+                        showGrid={false}
                       />
                     </div>
 
                     <div className="flex items-end justify-between border-t border-border pt-4">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-black italic text-foreground tracking-tighter">{total}</span>
-                        <span className="text-[8px] font-black opacity-40 uppercase tracking-widest">Total</span>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-2xl font-bold text-white tracking-tight">{total}</span>
+                        <span className="text-[9px] font-bold text-white/60 uppercase tracking-wider">Total</span>
                       </div>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-black italic text-yellow-400 tracking-tighter text-glow-yellow">{online}</span>
-                        <span className="text-[8px] font-black text-yellow-500/40 uppercase tracking-widest">Live</span>
+                      <div className="flex items-baseline gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                        <span className="text-xl font-bold text-emerald-400 tracking-tight">{online}</span>
+                        <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">Live</span>
                       </div>
                     </div>
                   </CardContent>
@@ -158,12 +156,13 @@ export default function DashboardOverview() {
             })}
           </div>
         ) : (
-          <Card className="bg-muted border-dashed border-border p-12 text-center">
-            <WifiOff className="w-12 h-12 opacity-20 mx-auto mb-4 text-foreground" />
-            <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">No active nodes detected.</p>
+          <Card className="bg-card border-dashed border-border p-12 text-center rounded-2xl">
+            <WifiOff className="w-12 h-12 text-white/20 mx-auto mb-4" />
+            <p className="text-white/60 font-bold uppercase tracking-widest text-xs">No active nodes detected</p>
           </Card>
-        )}
-      </section>
-    </div>
+        )
+        }
+      </section >
+    </div >
   );
 }

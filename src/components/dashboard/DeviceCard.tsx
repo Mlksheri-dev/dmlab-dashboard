@@ -67,25 +67,25 @@ export function DeviceCard({ device, serverTime }: DeviceCardProps) {
     <Card
       onClick={() => navigate(`/dashboard/pc/${device.system_id}`)}
       className={cn(
-        "group relative overflow-hidden glass-card transition-all cursor-pointer premium-border rounded-[2rem]",
-        isOnline ? "glow-cyan hover:border-cyan-500/50" : "glow-pink hover:border-pink-500/50"
+        "group relative overflow-hidden bg-card hover:bg-card/90 transition-all cursor-pointer border border-border hover:border-primary/40 rounded-xl shadow-sm hover:shadow-md",
+        isOnline ? "border-l-4 border-l-emerald-500" : "border-l-4 border-l-muted"
       )}
     >
-      <CardContent className="p-6 space-y-4">
+      <CardContent className="p-5 space-y-4">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className={cn(
-              "p-3 rounded-xl shadow-lg",
-              isOnline ? "bg-cyan-500/10 text-cyan-400 glow-cyan" : "bg-pink-500/10 text-pink-400 glow-pink"
+              "p-2 rounded-lg",
+              isOnline ? "bg-emerald-500/10 text-emerald-400" : "bg-muted text-muted-foreground"
             )}>
               <Monitor size={18} />
             </div>
             <div className="overflow-hidden">
-              <h3 className="text-sm font-black italic tracking-tighter text-foreground uppercase truncate">
+              <h3 className="text-sm font-bold tracking-tight text-white uppercase truncate">
                 {device.pc_name || "STATION"}
               </h3>
-              <p className="text-[9px] text-muted-foreground font-mono font-bold opacity-70">
+              <p className="text-[9px] text-white font-mono font-bold opacity-60">
                 SN: {device.system_id}
               </p>
             </div>
@@ -93,75 +93,71 @@ export function DeviceCard({ device, serverTime }: DeviceCardProps) {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <button className="p-2 hover:bg-muted rounded-lg text-muted-foreground/50 transition-colors">
-                <MoreVertical size={16} />
+              <button className="p-1.5 hover:bg-muted rounded text-muted-foreground/40 transition-colors">
+                <MoreVertical size={14} />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-popover border-border backdrop-blur-xl rounded-xl p-1">
-              <DropdownMenuItem onClick={handleRenamePC} className="gap-2 text-[10px] font-black uppercase p-2.5 rounded-lg">
-                <Edit2 size={12} /> Rename
+            <DropdownMenuContent align="end" className="bg-white border border-border rounded-lg p-1 shadow-lg">
+              <DropdownMenuItem onClick={handleRenamePC} className="gap-2 text-[10px] font-bold uppercase p-2 rounded-md">
+                <Edit2 size={12} className="text-primary" /> Rename
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDeletePC} className="gap-2 text-pink-500 text-[10px] font-black uppercase p-2.5 rounded-lg">
-                <Trash2 size={12} /> Terminate
+              <DropdownMenuItem onClick={handleDeletePC} className="gap-2 text-red-600 text-[10px] font-bold uppercase p-2 rounded-md">
+                <Trash2 size={12} /> Reset Slot
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
         {/* Technical Telemetry Graph */}
-        <div className="bg-background/50 rounded-2xl border border-border p-4 flex flex-col items-center gap-3">
+        <div className="bg-background rounded-xl border border-border p-3 flex flex-col items-center gap-2">
           <MiniWaveChart
-            color={isOnline ? "#00f2ff" : "#ff0080"}
+            color={isOnline ? "#01416D" : "#9CA3AF"}
             width={160}
-            height={40}
+            height={30}
             intensity={isOnline ? cpuIntensity : 0.05}
-            showGrid={true}
+            showGrid={false}
           />
-          <div className="w-full flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">
-            <span>LIVE TELEMETRY</span>
+          <div className="w-full flex justify-between items-center text-[8px] font-bold uppercase tracking-wider text-white/60">
+            <span>TELEMETRY</span>
             <div className="flex items-center gap-1.5">
-              <span className={cn(isOnline ? "text-cyan-400" : "text-pink-400")}>{isOnline ? "LINKED" : "OFFLINE"}</span>
-              <div className={cn("w-1 h-1 rounded-full", isOnline ? "bg-cyan-400 animate-pulse" : "bg-pink-400")} />
+              <span className={cn(isOnline ? "text-emerald-600" : "text-gray-400")}>{isOnline ? "LINKED" : "OFFLINE"}</span>
+              <div className={cn("w-1 h-1 rounded-full", isOnline ? "bg-emerald-600 animate-pulse" : "bg-gray-300")} />
             </div>
           </div>
         </div>
 
         {/* Compute & Info Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-muted p-3 rounded-xl border border-border">
-            <div className="flex items-center gap-1.5 mb-1 opacity-60">
-              <Cpu size={10} className="text-muted-foreground" />
-              <span className="text-[8px] font-black uppercase text-muted-foreground tracking-tighter">Load Units</span>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-background border border-border p-2 rounded-lg">
+            <div className="flex items-center gap-1 mb-1 opacity-60">
+              <Cpu size={10} className="text-primary" />
+              <span className="text-[8px] font-bold uppercase text-white/70 tracking-tight">CPU Load</span>
             </div>
             <p className={cn(
-              "text-lg font-black italic",
-              isOnline ? "text-cyan-400" : "text-foreground"
-            )}>{device.cpu_score || 0}</p>
+              "text-lg font-bold tracking-tight",
+              isOnline ? "text-white" : "text-white/60"
+            )}>{device.cpu_score || 0}%</p>
           </div>
-          <div className="bg-muted p-3 rounded-xl border border-border">
-            <div className="flex items-center gap-1.5 mb-1 opacity-60">
-              <MapPin size={10} className="text-muted-foreground" />
-              <span className="text-[8px] font-black uppercase text-muted-foreground tracking-tighter">Node Base</span>
+          <div className="bg-background border border-border p-2 rounded-lg">
+            <div className="flex items-center gap-1 mb-1 opacity-60">
+              <MapPin size={10} className="text-secondary" />
+              <span className="text-[8px] font-bold uppercase text-white/70 tracking-tight">Node</span>
             </div>
-            <p className="text-xs font-black text-foreground italic truncate uppercase">{device.city || 'N/A'}</p>
+            <p className="text-xs font-bold text-white/90 truncate uppercase">{device.city || 'N/A'}</p>
           </div>
         </div>
 
         {/* Status Bar */}
-        <div className="flex items-center justify-between pt-3 border-t border-border">
-          <span className="text-[9px] font-black uppercase text-muted-foreground/30 italic tracking-widest">STATION PROTOCOL</span>
+        <div className="flex items-center justify-between pt-2 border-t border-border">
+          <span className="text-[8px] font-bold uppercase text-white/40 tracking-widest">UNIT_PROTOCOL</span>
           <div className={cn(
-            "px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest",
-            isOnline ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-[0_0_10px_rgba(0,242,255,0.1)]" : "bg-muted text-muted-foreground border border-border"
+            "px-2.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest",
+            isOnline ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-muted text-white/60 border border-border"
           )}>
-            {isOnline ? "ACTIVE" : `LAST: ${lastActiveText}`}
+            {isOnline ? "ACTIVE" : `${lastActiveText}`}
           </div>
         </div>
       </CardContent>
-
-      {/* Hover Action Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-      <ArrowRight size={14} className="absolute bottom-4 right-4 text-primary opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
     </Card>
   );
 }
