@@ -16,6 +16,7 @@ import PCHistoryDetailPage from "./pages/PCHistoryDetailPage";
 
 import LabDashboard from "./pages/LabDashboard";
 import LabSummaryPage from "./pages/LabSummaryPage";
+import DashboardPage from "./pages/DashboardPage";
 import NotFound from "./pages/NotFound";
 import { GlobalFailsafe } from "@/components/GlobalFailsafe";
 
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="labs" element={<LabsPage />} />
               <Route path="devices" element={<DevicesPage />} />
               <Route path="overview" element={<DashboardOverview />} />
+              <Route path="analytics" element={<DashboardPage />} />
               <Route path="lab-summary/:city/:lab" element={<LabSummaryPage />} />
               <Route path="pc/:id" element={<PCDetailPage />} />
               <Route path="pc/:id/history/:date" element={<PCHistoryDetailPage />} />

@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '@/lib/api';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Search, MoreVertical, Edit2, Trash2 } from 'lucide-react';
@@ -19,6 +19,8 @@ export default function LocationsPage() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState('');
+    const [searchParams] = useSearchParams();
+    const status = searchParams.get('status');
 
     const { data: response, isLoading } = useQuery({
         queryKey: ['location-stats'],
@@ -59,9 +61,26 @@ export default function LocationsPage() {
     };
 
     const filteredLocations = locations
-        .filter((loc: any) =>
-            loc.city.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        .filter((loc: any) => {
+            const matchesSearch = loc.city.toLowerCase().includes(searchTerm.toLowerCase());
+            let matchesStatus = true;
+            if (status === 'online') {
+                matchesStatus = (loc.online || 0) > 0;
+            } else if (status === 'offline') {
+                // "Offline Cities" could mean totally offline or containing offline labs. 
+                // Given the simplistic city stats, we'll assume cities with ANY offline units or low connectivity?
+                // Or standard strict offline? 
+                // Let's stick to strict "No Online" for consistency, OR match Dashboard logic?
+                // Dashboard Online = Labs with online > 0.
+                // Dashboard Offline = Labs with online == 0.
+                // If we want "Offline Labs city wise", we want cities that contain offline labs.
+                // BUT we don't have that per-lab info here easily without iterating.
+                // Let's stick to a simple View filter for now:
+                // If Status is Offline, show cities that are "Offline" (online == 0).
+                matchesStatus = (loc.online || 0) === 0;
+            }
+            return matchesSearch && matchesStatus;
+        })
         .sort((a: any, b: any) => (b.total_pcs || 0) - (a.total_pcs || 0)); // Highest capacity first
 
     return (
@@ -69,11 +88,11 @@ export default function LocationsPage() {
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight uppercase text-white font-display">
-                        CITYWISE <span className="text-white/80">SYSTEM</span>
+                        {status ? `${status} CITIES` : 'CITYWISE SYSTEM'}
                     </h1>
 
                     <p className="text-white font-bold mt-1 uppercase tracking-wider text-[10px]">
-                        Distribution of Institutional Computing Resources
+                        {status === 'online' ? 'Active Regional Hubs' : status === 'offline' ? 'Inactive Regional Hubs' : 'Distribution of Institutional Computing Resources'}
                     </p>
                 </div>
 

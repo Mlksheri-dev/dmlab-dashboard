@@ -71,7 +71,8 @@ export function DeviceCard({ device, serverTime }: DeviceCardProps) {
       hour: '2-digit', minute: '2-digit'
     }).format(lastSeenDate) : '---';
 
-  const cpuIntensity = Math.min(1, (device.cpu_score || 0) / 100) || 0.1;
+  const currentCpu = device.app_usage?.['__current_cpu__'] || device.cpu_score || 0;
+  const cpuIntensity = Math.min(1, currentCpu / 100) || 0.1;
 
   return (
     <Card
@@ -134,6 +135,7 @@ export function DeviceCard({ device, serverTime }: DeviceCardProps) {
             height={30}
             intensity={isOnline ? cpuIntensity : 0.05}
             showGrid={false}
+            isOnline={isOnline || false}
           />
           <div className="w-full flex justify-between items-center text-[8px] font-bold uppercase tracking-wider text-white/60">
             <span>TELEMETRY</span>
@@ -146,15 +148,27 @@ export function DeviceCard({ device, serverTime }: DeviceCardProps) {
 
         {/* Compute & Info Grid */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-background border border-border p-2 rounded-lg">
-            <div className="flex items-center gap-1 mb-1 opacity-60">
-              <Cpu size={10} className="text-primary" />
-              <span className="text-[8px] font-bold uppercase text-white/70 tracking-tight">COMPUTE</span>
+          <div className="bg-background border border-border p-2 rounded-lg flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-1 opacity-60">
+              <div className="flex items-center gap-1">
+                <Cpu size={10} className="text-primary" />
+                <span className="text-[7px] font-bold uppercase text-white/70 tracking-tight">CPU LOAD</span>
+              </div>
             </div>
-            <p className={cn(
-              "text-lg font-bold tracking-tight",
-              isOnline ? "text-white" : "text-white/60"
-            )}>{device.cpu_score || 0}</p>
+            <div className="flex items-end justify-between">
+              <div>
+                <p className={cn("text-sm font-bold tracking-tight leading-none", isOnline ? "text-white" : "text-white/60")}>
+                  {device.app_usage?.['__current_cpu__'] || 0}%
+                </p>
+                <p className="text-[6px] font-bold uppercase text-muted-foreground mt-0.5">Current</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-bold tracking-tight leading-none text-white/50">
+                  {device.cpu_score || 0}%
+                </p>
+                <p className="text-[6px] font-bold uppercase text-muted-foreground mt-0.5">Avg</p>
+              </div>
+            </div>
           </div>
           <div className="bg-background border border-border p-2 rounded-lg">
             <div className="flex items-center gap-1 mb-1 opacity-60">

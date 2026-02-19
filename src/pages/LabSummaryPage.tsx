@@ -180,10 +180,10 @@ const LabSummaryPage = () => {
                             try {
                                 const { generateDynamicReport } = await import('@/lib/pdf-generator');
                                 // Fetch detailed inventory to include in the report
-                                const devicesResponse = await apiFetch(`/devices?city=${city}&lab=${lab}`);
+                                // processDevices is already available in scope and has the latest defective status
                                 await generateDynamicReport('LAB', {
                                     ...labData,
-                                    devices: devicesResponse?.devices || []
+                                    devices: processedDevices
                                 }, lab);
                                 (await import('sonner')).toast.success("Facility Audit Ready", { id: toastId });
                             } catch (e) {
@@ -194,7 +194,7 @@ const LabSummaryPage = () => {
                         className="bg-white hover:bg-white/90 text-black gap-3 px-6 rounded-lg h-12 text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg"
                     >
                         <FileText size={16} />
-                        Generate PDF
+                        Generate Excel
                     </Button>
 
                     <div className="hidden lg:flex items-center gap-8">

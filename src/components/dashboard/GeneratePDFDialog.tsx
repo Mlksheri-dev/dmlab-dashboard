@@ -251,14 +251,14 @@ export function GeneratePDFDialog() {
         }
 
         setLoading(true);
-        const toastId = toast.loading("Generating customized PDF report...");
+        const toastId = toast.loading("Generating customized Excel report...");
         try {
             await generateCustomMultiLabReport(reportData);
-            toast.success("PDF Report Generated Successfully", { id: toastId });
+            toast.success("Excel Report Generated Successfully", { id: toastId });
             setOpen(false);
         } catch (error) {
             console.error(error);
-            toast.error("Failed to generate PDF", { id: toastId });
+            toast.error("Failed to generate Excel report", { id: toastId });
         } finally {
             setLoading(false);
         }
@@ -269,7 +269,7 @@ export function GeneratePDFDialog() {
             <DialogTrigger asChild>
                 <button className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-xl text-xs font-black text-white bg-secondary hover:bg-secondary/90 transition-all duration-300 shadow-xl group border border-secondary/20">
                     <FileText className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
-                    <span>GENERATE PDF</span>
+                    <span>GENERATE EXCEL</span>
                 </button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[1000px] bg-card border-border text-white p-0 overflow-hidden">

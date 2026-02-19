@@ -287,13 +287,13 @@ export default function PCDetailPage() {
 
               <Button
                 onClick={async () => {
-                  const toastId = toast.loading("Synthesizing node audit PDF...");
+                  const toastId = toast.loading("Synthesizing node audit Excel report...");
                   try {
                     const { generateDynamicReport } = await import('@/lib/pdf-generator');
                     await generateDynamicReport('PC', { ...device, isOnline, history: detail?.history }, device.system_id);
                     toast.success("Audit Generated Successfully", { id: toastId });
                   } catch (e) {
-                    toast.error("PDF Engine Error", { id: toastId });
+                    toast.error("Excel Engine Error", { id: toastId });
                   }
                 }}
                 className="bg-white hover:bg-white/90 text-black gap-2 px-6 rounded-lg h-10 text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm"
@@ -455,14 +455,19 @@ export default function PCDetailPage() {
                     showGrid={false}
                   />
                 </div>
-                <div className="flex items-baseline justify-between">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-5xl font-bold tracking-tighter text-primary">{device.cpu_score || 0}</span>
-                    <span className="text-[10px] font-bold text-secondary uppercase tracking-widest">COMPUTE INDEX</span>
+                <div className="flex items-end justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-5xl font-bold tracking-tighter text-emerald-500 animate-in fade-in zoom-in duration-500">
+                      {device.app_usage?.['__current_cpu__'] || 0}%
+                    </span>
+                    <span className="text-[10px] font-bold text-emerald-500/60 uppercase tracking-widest mt-1">REAL-TIME LOAD</span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-[8px] font-bold opacity-40 uppercase tracking-widest">Update Rate</p>
-                    <p className="text-[10px] font-bold text-primary">1S / SYNC</p>
+
+                  <div className="flex flex-col items-end opacity-60">
+                    <span className="text-3xl font-bold tracking-tighter text-white">
+                      {device.cpu_score || 0}%
+                    </span>
+                    <span className="text-[9px] font-bold text-white/50 uppercase tracking-widest mt-1">DAILY AVERAGE</span>
                   </div>
                 </div>
               </div>
@@ -484,7 +489,9 @@ export default function PCDetailPage() {
                   {(() => {
                     const runtimeMins = device.runtime_minutes || 1; // Avoid div by zero
                     const maxSessionSecs = runtimeMins * 60;
-                    const items = Object.entries(device.app_usage as Record<string, number>).sort(([, a], [, b]) => b - a);
+                    const items = Object.entries(device.app_usage as Record<string, number>)
+                      .filter(([app]) => app !== '__current_cpu__')
+                      .sort(([, a], [, b]) => b - a);
 
                     return items.slice(0, 15).map(([app, rawSecs]) => {
                       const secs = Math.min(rawSecs, maxSessionSecs);
@@ -568,7 +575,8 @@ export default function PCDetailPage() {
                       {/* INJECT TODAY'S LIVE SESSION - ONLY IF NOT ALREADY IN HISTORY */}
                       {(() => {
                         const today = new Date().toISOString().split('T')[0];
-                        const historyHasToday = history.length > 0 && (history[0].history_date === today || history[0].start_time?.startsWith(today));
+                        // Robust check: Compare date strings directly
+                        const historyHasToday = history.some((h: any) => h.history_date === today || h.start_time?.startsWith(today));
 
                         if (!historyHasToday) {
                           return (
@@ -584,8 +592,8 @@ export default function PCDetailPage() {
                               </td>
                               <td className="px-6 py-5 border-b border-border/50 text-right">
                                 <div className="flex flex-col items-end">
-                                  <span className="text-lg font-bold text-primary">{Number(device.cpu_score || 0).toFixed(0)}</span>
-                                  <span className="text-[7px] font-bold text-secondary uppercase tracking-widest">CPU CURRENT</span>
+                                  <span className="text-lg font-bold text-primary">{Number(device.cpu_score || 0).toFixed(1)}%</span>
+                                  <span className="text-[7px] font-bold text-secondary uppercase tracking-widest">DAILY AVG</span>
                                 </div>
                               </td>
                             </tr>
@@ -607,8 +615,8 @@ export default function PCDetailPage() {
                             </td>
                             <td className="px-6 py-5 border-b border-border/50 text-right">
                               <div className="flex flex-col items-end">
-                                <span className="text-lg font-bold text-primary">{Number(h.avg_score || 0).toFixed(0)}</span>
-                                <span className="text-[7px] font-bold text-secondary uppercase tracking-widest">CPU MEAN</span>
+                                <span className="text-lg font-bold text-primary">{Number(h.avg_score || 0).toFixed(1)}%</span>
+                                <span className="text-[7px] font-bold text-secondary uppercase tracking-widest">AVG %</span>
                               </div>
                             </td>
                           </tr>

@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { GeneratePDFDialog } from './GeneratePDFDialog';
 
 const navItems = [
+  { to: '/dashboard/analytics', icon: Activity, label: 'DASHBOARD' },
   { to: '/dashboard', icon: Beaker, label: 'LAB DASHBOARD' },
   { to: '/dashboard/overview', icon: LayoutDashboard, label: 'TOTAL CITY' },
   { to: '/dashboard/cities', icon: Globe, label: 'CITYWISE SYSTEM' },

@@ -14,14 +14,14 @@ export default function DashboardOverview() {
   const navigate = useNavigate();
 
   const handleGenerateReport = async (stats: any, locations: any[]) => {
-    const toastId = toast.loading("Preparing your system audit PDF...");
+    const toastId = toast.loading("Preparing your system audit Excel report...");
     try {
       const { generateDynamicReport } = await import('@/lib/pdf-generator');
       await generateDynamicReport('GLOBAL', { locations });
-      toast.success("PDF Generated Successfully!", { id: toastId });
+      toast.success("Excel Report Generated Successfully!", { id: toastId });
     } catch (error) {
       console.error(error);
-      toast.error("Failed to generate PDF. Please try again.", { id: toastId });
+      toast.error("Failed to generate Excel report. Please try again.", { id: toastId });
     }
   };
 
@@ -58,7 +58,7 @@ export default function DashboardOverview() {
           className="bg-white hover:bg-white/90 text-black gap-2 px-6 rounded-lg h-10 text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm"
         >
           <FileText size={16} className="text-black" />
-          Generate System Audit
+          Generate System Audit (Excel)
         </Button>
       </header>
 

@@ -24,9 +24,8 @@ export default function LabsPage() {
     const [searchTerm, setSearchTerm] = useState('');
 
     const { data: response, isLoading } = useQuery({
-        queryKey: ['lab-stats', city],
-        queryFn: () => apiFetch(`/stats/city/${city}/labs`),
-        enabled: !!city,
+        queryKey: ['lab-stats', city || 'all'],
+        queryFn: () => apiFetch(city ? `/stats/city/${city}/labs` : '/stats/labs/all'),
         refetchInterval: 10000,
         staleTime: 5000,
         gcTime: 30000
@@ -62,10 +61,19 @@ export default function LabsPage() {
         }
     };
 
+    const status = searchParams.get('status');
+
     const filteredLabs = labs
-        .filter((lab: any) =>
-            lab.lab_name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        .filter((lab: any) => {
+            const matchesSearch = lab.lab_name.toLowerCase().includes(searchTerm.toLowerCase());
+            let matchesStatus = true;
+            if (status === 'online') {
+                matchesStatus = (lab.online || 0) > 0;
+            } else if (status === 'offline') {
+                matchesStatus = (lab.online || 0) === 0;
+            }
+            return matchesSearch && matchesStatus;
+        })
         .sort((a: any, b: any) => (b.total_pcs || 0) - (a.total_pcs || 0)); // Highest capacity first
 
     return (
@@ -76,38 +84,40 @@ export default function LabsPage() {
                         variant="ghost"
                         size="sm"
                         className="h-8 px-4 rounded-lg bg-card border border-border text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary hover:border-primary transition-all font-display"
-                        onClick={() => navigate('/dashboard/cities')}
+                        onClick={() => navigate(city ? '/dashboard/cities' : '/dashboard')}
                     >
-                        <ArrowLeft className="w-3 h-3 mr-2" /> Back to Regions
+                        <ArrowLeft className="w-3 h-3 mr-2" /> {city ? 'Back to Regions' : 'Back to Dashboard'}
                     </Button>
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight uppercase text-white font-display">
-                            {city?.toUpperCase()} <span className="text-white/80">SYSTEM</span>
+                            {city ? `${city.toUpperCase()} SYSTEM` : status ? `${status.toUpperCase()} LABS` : 'ALL LABS'}
                         </h1>
                         <p className="text-white font-bold mt-1 uppercase tracking-wider text-[10px]">
-                            Regional Lab Clusters & Facility Inventory
+                            {city ? 'Regional Lab Clusters & Facility Inventory' : 'Global Facility Inventory & Status'}
                         </p>
                     </div>
                 </div>
 
                 <div className="flex flex-col md:flex-row items-center gap-4">
-                    <Button
-                        onClick={async () => {
-                            const toastId = toast.loading(`Synthesizing ${city} infrastructure audit...`);
-                            try {
-                                const { generateDynamicReport } = await import('@/lib/pdf-generator');
-                                await generateDynamicReport('CITY', { labs, city }, city!);
-                                toast.success("City Audit Generated", { id: toastId });
-                            } catch (e) {
-                                console.error(e);
-                                toast.error("Failed to generate audit", { id: toastId });
-                            }
-                        }}
-                        className="bg-white hover:bg-white/90 text-black gap-2 px-6 rounded-lg h-10 text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm"
-                    >
-                        <Building2 size={16} className="text-black" />
-                        Generate City Audit
-                    </Button>
+                    {city && (
+                        <Button
+                            onClick={async () => {
+                                const toastId = toast.loading(`Synthesizing ${city} infrastructure audit...`);
+                                try {
+                                    const { generateDynamicReport } = await import('@/lib/pdf-generator');
+                                    await generateDynamicReport('CITY', { labs, city }, city!);
+                                    toast.success("City Audit Excel Generated", { id: toastId });
+                                } catch (e) {
+                                    console.error(e);
+                                    toast.error("Failed to generate audit", { id: toastId });
+                                }
+                            }}
+                            className="bg-white hover:bg-white/90 text-black gap-2 px-6 rounded-lg h-10 text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm"
+                        >
+                            <Building2 size={16} className="text-black" />
+                            Generate City Audit (Excel)
+                        </Button>
+                    )}
 
                     <div className="relative w-full md:w-80 group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-all" />
@@ -141,7 +151,7 @@ export default function LabsPage() {
                         return (
                             <Card
                                 key={lab.lab_name}
-                                onClick={() => navigate(`/dashboard/devices?city=${city}&lab=${lab.lab_name}`)}
+                                onClick={() => navigate(`/dashboard/devices?city=${city || lab.city || ''}&lab=${lab.lab_name}`)}
                                 className="group relative overflow-hidden bg-card cursor-pointer border border-border hover:border-primary/40 transition-all hover:translate-y-[-4px] shadow-sm hover:shadow-lg rounded-2xl min-h-[200px]"
                             >
                                 <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
