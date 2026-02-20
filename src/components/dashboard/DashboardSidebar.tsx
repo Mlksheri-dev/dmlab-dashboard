@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Monitor, LogOut, Menu, X, Globe, ShieldCheck, Beaker, Activity } from 'lucide-react';
+import { LayoutDashboard, Monitor, LogOut, Menu, X, Globe, ShieldCheck, Beaker, Activity, Zap } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -9,10 +9,11 @@ import { GeneratePDFDialog } from './GeneratePDFDialog';
 
 const navItems = [
   { to: '/dashboard/analytics', icon: Activity, label: 'DASHBOARD' },
-  { to: '/dashboard', icon: Beaker, label: 'LAB DASHBOARD' },
-  { to: '/dashboard/overview', icon: LayoutDashboard, label: 'TOTAL CITY' },
-  { to: '/dashboard/cities', icon: Globe, label: 'CITYWISE SYSTEM' },
-  { to: '/dashboard/devices', icon: Monitor, label: 'TOTAL SYSTEM' },
+  { to: '/dashboard/utilization', icon: Zap, label: 'UTILIZATION' },
+  // { to: '/dashboard', icon: Beaker, label: 'LAB DASHBOARD' },
+  { to: '/dashboard/overview', icon: LayoutDashboard, label: 'DISTRICTWISE' },
+  { to: '/dashboard/cities', icon: Globe, label: 'DISTRICTWISE LAB' },
+  { to: '/dashboard/devices', icon: Monitor, label: 'LABWISE SYSTEM' },
 ];
 
 interface DashboardSidebarProps {

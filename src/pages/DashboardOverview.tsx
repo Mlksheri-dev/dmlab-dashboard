@@ -48,7 +48,7 @@ export default function DashboardOverview() {
       <header className="pb-6 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white uppercase font-display">
-            CITYWISE <span className="text-white/80">OVERVIEW</span>
+            DISTRICTWISE <span className="text-white/80">OVERVIEW</span>
           </h1>
 
         </div>
@@ -130,15 +130,6 @@ export default function DashboardOverview() {
                       <MoreVertical size={16} className="text-white/30" />
                     </div>
 
-                    <div className="flex justify-center flex-1 items-center opacity-40">
-                      <MiniWaveChart
-                        color="#01416D"
-                        width={180}
-                        height={40}
-                        intensity={intensity}
-                        showGrid={false}
-                      />
-                    </div>
 
                     <div className="flex items-end justify-between border-t border-border pt-4">
                       <div className="flex items-baseline gap-1.5">

@@ -88,7 +88,7 @@ export default function LocationsPage() {
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight uppercase text-white font-display">
-                        {status ? `${status} CITIES` : 'CITYWISE SYSTEM'}
+                        {status ? `${status} CITIES` : 'DISTRICTWISE LAB'}
                     </h1>
 
                     <p className="text-white font-bold mt-1 uppercase tracking-wider text-[10px]">
@@ -160,15 +160,6 @@ export default function LocationsPage() {
                                         </DropdownMenu>
                                     </div>
 
-                                    <div className="flex justify-center flex-1 items-center opacity-40">
-                                        <MiniWaveChart
-                                            color="#01416D"
-                                            width={180}
-                                            height={40}
-                                            intensity={intensity}
-                                            showGrid={false}
-                                        />
-                                    </div>
 
                                     <div className="flex items-end justify-between border-t border-border pt-4">
                                         <div className="flex items-baseline gap-1.5">

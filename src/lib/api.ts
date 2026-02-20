@@ -15,8 +15,9 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
     };
 
     try {
+        const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5050/api";
         const res = await fetch(
-            `https://lab-systems-monitoring-server-1.onrender.com/api${path}`,
+            `${baseUrl}${path}`,
             finalOptions
         );
 

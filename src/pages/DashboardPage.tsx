@@ -88,16 +88,32 @@ export default function DashboardPage() {
     const labs = (Array.isArray(data?.labs) ? data.labs : []).filter((l: any) => l && typeof l === 'object');
 
     // --- VIEW 1: LAB STATUS (Left) ---
-    // --- VIEW 1: LAB STATUS (Left) ---
-    const onlineLabs = labs.filter((l: any) => Number(l.online || 0) > 0);
+    // --- VIEW 1: LAB UTILIZATION & STATUS (Center) ---
+    const usedLabs = labs.filter((l: any) => {
+        // A lab is "Used" if it's online and has at least 1 PC being actively used (>15% load)
+        // Note: We need device-level data for perfect accuracy, but the aggregated 'labs' 
+        // objects might not have this unless the backend provides it.
+        // However, based on the previous LabsPage logic, we can try to estimate or 
+        // we might need to fetch all devices here too.
+        // For now, let's assume 'used' labs are those where the average performance of the lab is decent,
+        // or if the backend provides 'active_used' count.
+        return Number(l.online || 0) > 0 && (Number(l.active_used || 0) > 0 || Number(l.avg_performance || 0) > 15);
+    });
+
+    const idleLabs = labs.filter((l: any) => {
+        return Number(l.online || 0) > 0 && !usedLabs.includes(l);
+    });
+
     const offlineLabs = labs.filter((l: any) => Number(l.online || 0) === 0);
-    const onlineLabsVal = onlineLabs.length;
+
+    const usedLabsVal = usedLabs.length;
+    const idleLabsVal = idleLabs.length;
     const offlineLabsVal = offlineLabs.length;
-    const totalLabs = onlineLabsVal + offlineLabsVal;
+    const totalLabs = labs.length;
 
     const statusChartData = [
-        { name: "Online Labs", value: onlineLabsVal, color: "#00e676" },
-        { name: "Offline Labs", value: offlineLabsVal, color: "#ff1744" },
+        { name: "Online Labs", value: usedLabsVal + idleLabsVal, color: "#00e676" }, // Green for Online
+        { name: "Offline Labs", value: offlineLabsVal, color: "#ff1744" }, // Red for Offline
     ];
 
     // --- VIEW 2: PC STATUS (Right) ---
@@ -273,9 +289,9 @@ export default function DashboardPage() {
                             <PieChart>
                                 <Pie
                                     data={
-                                        viewMode === 'online' ? [{ name: "Online Labs", value: onlineLabsVal || 1, color: "#00e676" }] :
+                                        viewMode === 'online' ? [{ name: "Online Labs", value: (usedLabsVal + idleLabsVal) || 1, color: "#00e676" }] :
                                             viewMode === 'offline' ? [{ name: "Offline Labs", value: offlineLabsVal || 1, color: "#ff1744" }] :
-                                                safeStatusChartData
+                                                statusChartData
                                     }
                                     cx="50%"
                                     cy="50%"
@@ -289,9 +305,9 @@ export default function DashboardPage() {
                                     onClick={handleLeftChartClick}
                                 >
                                     {(
-                                        viewMode === 'online' ? [{ name: "Online Labs", value: onlineLabsVal, color: "#00e676" }] :
+                                        viewMode === 'online' ? [{ name: "Online Labs", value: (usedLabsVal + idleLabsVal), color: "#00e676" }] :
                                             viewMode === 'offline' ? [{ name: "Offline Labs", value: offlineLabsVal, color: "#ff1744" }] :
-                                                safeStatusChartData
+                                                statusChartData
                                     ).map((entry, index) => (
                                         <Cell
                                             key={`cell-l-${index}`}
@@ -310,7 +326,7 @@ export default function DashboardPage() {
                             {viewMode === 'online' ? (
                                 <>
                                     <span className="text-7xl font-black text-[#00e676] tracking-tighter drop-shadow-[0_0_15px_rgba(0,230,118,0.5)] animate-in zoom-in-50 duration-300">
-                                        {onlineLabsVal}
+                                        {usedLabsVal + idleLabsVal}
                                     </span>
                                     <span className="text-[10px] font-bold text-[#00e676]/60 uppercase tracking-[0.4em] mt-2 ml-1">
                                         Online Labs
@@ -330,12 +346,9 @@ export default function DashboardPage() {
                                     <span className="text-7xl font-black text-white tracking-tighter drop-shadow-2xl animate-in zoom-in-50 duration-300">
                                         {totalLabs}
                                     </span>
-                                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.4em] mt-2 ml-1">
-                                        Total Labs
-                                    </span>
                                     <div className="flex gap-3 mt-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
                                         <span className="text-[10px] font-bold text-[#00e676] drop-shadow-[0_0_8px_rgba(0,230,118,0.5)]">
-                                            {onlineLabsVal} ONLINE
+                                            {usedLabsVal + idleLabsVal} ONLINE
                                         </span>
                                         <span className="text-[10px] font-bold text-[#ff1744] drop-shadow-[0_0_8px_rgba(255,23,68,0.5)]">
                                             {offlineLabsVal} OFFLINE

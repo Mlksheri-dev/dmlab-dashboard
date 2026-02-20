@@ -109,7 +109,7 @@ export default function DevicesPage() {
             <h1 className="text-3xl font-bold tracking-tight uppercase text-white font-display leading-none">
               {statusFilter === 'offline_7d' ? '7 DAYS+ OFFLINE' :
                 statusFilter === 'offline_30d' ? 'ONE MONTH+ OFFLINE' :
-                  labParam ? `${labParam}` : (cityParam ? cityParam : "TOTAL")} <span className="text-white/80">SYSTEM</span>
+                  labParam ? `${labParam}` : (cityParam ? cityParam : "LABWISE")} <span className="text-white/80">SYSTEM</span>
             </h1>
 
             <p className="text-white font-bold mt-2 uppercase tracking-wider text-[10px]">

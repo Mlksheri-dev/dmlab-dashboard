@@ -457,9 +457,10 @@ export default function PCDetailPage() {
                 </div>
                 <div className="flex items-end justify-between">
                   <div className="flex flex-col">
-                    <span className="text-5xl font-bold tracking-tighter text-emerald-500 animate-in fade-in zoom-in duration-500">
-                      {device.app_usage?.['__current_cpu__'] || 0}%
+                    <span className="text-7xl font-bold tracking-tighter text-emerald-500 animate-in fade-in zoom-in duration-500">
+                      {device.app_usage?.['__current_cpu__'] || 0}
                     </span>
+
                     <span className="text-[10px] font-bold text-emerald-500/60 uppercase tracking-widest mt-1">REAL-TIME LOAD</span>
                   </div>
 
@@ -578,6 +579,17 @@ export default function PCDetailPage() {
                         // Robust check: Compare date strings directly
                         const historyHasToday = history.some((h: any) => h.history_date === today || h.start_time?.startsWith(today));
 
+                        const getNormalizedScore = (val: any) => {
+                          let score = parseFloat(val) || 0;
+                          // Heuristic: If value is absurdly high (accumulated), divide by 100 as per user request
+                          if (score > 100) {
+                            score = score / 100;
+                          }
+                          // Hard cap to ensure it never exceeds or equals 100%
+                          if (score >= 100) score = 99.9;
+                          return score.toFixed(1);
+                        };
+
                         if (!historyHasToday) {
                           return (
                             <tr
@@ -592,19 +604,30 @@ export default function PCDetailPage() {
                               </td>
                               <td className="px-6 py-5 border-b border-border/50 text-right">
                                 <div className="flex flex-col items-end">
-                                  <span className="text-lg font-bold text-primary">{Number(device.cpu_score || 0).toFixed(1)}%</span>
+                                  <span className="text-lg font-bold text-primary">{getNormalizedScore(device.cpu_score)}%</span>
                                   <span className="text-[7px] font-bold text-secondary uppercase tracking-widest">DAILY AVG</span>
                                 </div>
                               </td>
                             </tr>
                           );
                         }
+
+                        // Helper available for the map loop below as well if we scope it correctly, 
+                        // but since we are inside an IIFE, we can't export it easily.
+                        // Instead, let's just return the single row here, and handle the map separately or 
+                        // redefine the helper in the map.
+                        // To keep code clean in this replace_block, I'll inline the logic in the map below.
                         return null;
                       })()}
 
                       {history.slice(0, 10).map((h: any) => {
                         const dateObj = h.history_date ? new Date(h.history_date) : new Date(h.start_time);
                         const dateArg = h.history_date || h.start_time?.split('T')[0];
+
+                        let score = parseFloat(h.avg_score || 0);
+                        if (score > 100) score = score / 100;
+                        if (score >= 100) score = 99.9;
+
                         return (
                           <tr key={h.id || h.history_date} onClick={() => handleHistoryClick(dateArg)} className="text-xs group hover:bg-muted/50 transition-all cursor-pointer">
                             <td className="px-6 py-5 border-b border-border/50">
@@ -615,7 +638,7 @@ export default function PCDetailPage() {
                             </td>
                             <td className="px-6 py-5 border-b border-border/50 text-right">
                               <div className="flex flex-col items-end">
-                                <span className="text-lg font-bold text-primary">{Number(h.avg_score || 0).toFixed(1)}%</span>
+                                <span className="text-lg font-bold text-primary">{score.toFixed(1)}%</span>
                                 <span className="text-[7px] font-bold text-secondary uppercase tracking-widest">AVG %</span>
                               </div>
                             </td>

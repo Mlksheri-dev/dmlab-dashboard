@@ -4,7 +4,7 @@ import { apiFetch } from '@/lib/api';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Building2, Search, MoreVertical, Edit2, Trash2, ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MiniWaveChart } from '@/components/dashboard/MiniWaveChart';
@@ -15,6 +15,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { supabase } from '@/lib/supabase';
 
 export default function LabsPage() {
     const navigate = useNavigate();
@@ -22,16 +23,6 @@ export default function LabsPage() {
     const [searchParams] = useSearchParams();
     const city = searchParams.get('city');
     const [searchTerm, setSearchTerm] = useState('');
-
-    const { data: response, isLoading } = useQuery({
-        queryKey: ['lab-stats', city || 'all'],
-        queryFn: () => apiFetch(city ? `/stats/city/${city}/labs` : '/stats/labs/all'),
-        refetchInterval: 10000,
-        staleTime: 5000,
-        gcTime: 30000
-    });
-
-    const labs = response?.labs || [];
 
     const handleRenameLab = async (e: React.MouseEvent, oldName: string) => {
         e.stopPropagation();
@@ -43,7 +34,7 @@ export default function LabsPage() {
                 body: JSON.stringify({ city, old_name: oldName, new_name: newName })
             });
             toast.success(`Lab renamed to ${newName}`);
-            queryClient.invalidateQueries({ queryKey: ['lab-stats'] });
+            queryClient.invalidateQueries({ queryKey: ['all-devices-for-labs'] });
         } catch (err) {
             toast.error("Failed to rename lab");
         }
@@ -55,17 +46,33 @@ export default function LabsPage() {
         try {
             await apiFetch(`/stats/lab/delete?city=${city}&lab=${labName}`, { method: 'DELETE' });
             toast.success(`${labName} deleted.`);
-            queryClient.invalidateQueries({ queryKey: ['lab-stats'] });
+            queryClient.invalidateQueries({ queryKey: ['all-devices-for-labs'] });
         } catch (err) {
             toast.error("Failed to delete lab");
         }
     };
 
+    // --- NEW LOGIC: FETCH ALL DEVICES TO CALCULATE UTILIZATION ---
+    // The user wants to distinguish between "ON but IDLE" and "ON and DRIVING".
+    // We fetch raw device data and aggregate it ourselves.
+
+    const { data: statsData, isLoading } = useQuery({
+        queryKey: ['all-lab-stats', city || 'global'],
+        queryFn: () => apiFetch("/stats/labs/all"),
+        refetchInterval: 10000,
+    });
+
+    const labs = useMemo(() => {
+        const allLabs = Array.isArray(statsData?.labs) ? statsData.labs : [];
+        if (!city) return allLabs;
+        return allLabs.filter((l: any) => l.city.toLowerCase() === city.toLowerCase());
+    }, [statsData, city]);
+
     const status = searchParams.get('status');
 
-    const filteredLabs = labs
-        .filter((lab: any) => {
-            const matchesSearch = lab.lab_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const filteredLabs = useMemo(() => {
+        return labs.filter((lab: any) => {
+            const matchesSearch = (lab.lab_name || lab.lab || '').toLowerCase().includes(searchTerm.toLowerCase());
             let matchesStatus = true;
             if (status === 'online') {
                 matchesStatus = (lab.online || 0) > 0;
@@ -73,8 +80,8 @@ export default function LabsPage() {
                 matchesStatus = (lab.online || 0) === 0;
             }
             return matchesSearch && matchesStatus;
-        })
-        .sort((a: any, b: any) => (b.total_pcs || 0) - (a.total_pcs || 0)); // Highest capacity first
+        }).sort((a: any, b: any) => (b.total_pcs || 0) - (a.total_pcs || 0));
+    }, [labs, searchTerm, status]);
 
     return (
         <div className="p-4 md:p-8 space-y-8 animate-in slide-in-from-right-4 duration-700 bg-background min-h-screen">
@@ -162,7 +169,7 @@ export default function LabsPage() {
                                                 <Building2 size={16} />
                                             </div>
                                             <h2 className="text-lg font-bold tracking-tight uppercase text-white group-hover:text-white/80 transition-colors truncate">
-                                                {lab.lab_name}
+                                                {lab.lab_name || lab.lab}
                                             </h2>
                                         </div>
 
@@ -183,27 +190,20 @@ export default function LabsPage() {
                                         </DropdownMenu>
                                     </div>
 
-                                    {/* Minimal Graph */}
-                                    <div className="flex justify-center flex-1 items-center opacity-40">
-                                        <MiniWaveChart
-                                            color="#01416D"
-                                            width={180}
-                                            height={40}
-                                            intensity={intensity}
-                                            showGrid={false}
-                                        />
-                                    </div>
 
                                     {/* Numeric Readouts */}
-                                    <div className="flex items-end justify-between border-t border-border pt-4">
-                                        <div className="flex items-baseline gap-1.5">
-                                            <span className="text-2xl font-bold text-white tracking-tight">{total}</span>
-                                            <span className="text-[9px] font-bold text-white/60 uppercase tracking-wider">Total Units</span>
+                                    <div className="space-y-3 border-t border-border pt-4">
+                                        <div className="flex items-end justify-between">
+                                            <div className="flex items-baseline gap-1.5">
+                                                <span className="text-2xl font-bold text-white tracking-tight">{total}</span>
+                                                <span className="text-[9px] font-bold text-white/60 uppercase tracking-wider">Total Units</span>
+                                            </div>
+                                            <div className="flex items-baseline gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-sm">
+                                                <span className="text-xl font-bold text-emerald-400 tracking-tight">{online}</span>
+                                                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">Live</span>
+                                            </div>
                                         </div>
-                                        <div className="flex items-baseline gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-sm">
-                                            <span className="text-xl font-bold text-emerald-400 tracking-tight">{online}</span>
-                                            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">Live</span>
-                                        </div>
+
                                     </div>
                                 </CardContent>
                             </Card>

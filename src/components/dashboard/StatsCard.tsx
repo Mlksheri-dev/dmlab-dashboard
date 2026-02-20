@@ -33,15 +33,6 @@ export function StatsCard({ title, value, icon: Icon, variant = 'blue' }: StatsC
         )}>
           <Icon className="w-5 h-5" />
         </div>
-        <div className="opacity-40">
-          <MiniWaveChart
-            color={colors[variant as keyof typeof colors]}
-            width={100}
-            height={30}
-            intensity={0.4}
-            showGrid={false}
-          />
-        </div>
       </div>
 
       <div className="relative z-10">
