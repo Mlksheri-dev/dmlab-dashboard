@@ -17,6 +17,7 @@ export default function DevicesPage() {
   const navigate = useNavigate();
   const cityParam = searchParams.get('city');
   const labParam = searchParams.get('lab');
+  const tehsilParam = searchParams.get('tehsil');
   const statusParam = searchParams.get('status') as 'all' | 'online' | 'offline' | 'offline_7d' | 'offline_30d' | 'defective';
 
   const [search, setSearch] = useState("");
@@ -27,11 +28,12 @@ export default function DevicesPage() {
   }, [statusParam]);
 
   const { data: response, isLoading } = useQuery({
-    queryKey: ['devices-list', cityParam, labParam, statusFilter, search],
+    queryKey: ['devices-list', cityParam, labParam, tehsilParam, statusFilter, search],
     queryFn: async () => {
       let query = supabase.from('devices').select('*');
 
       if (cityParam) query = query.eq('city', cityParam);
+      if (tehsilParam) query = query.eq('tehsil', tehsilParam);
       if (labParam) query = query.eq('lab_name', labParam);
 
       // Handle base status filter from DB
@@ -95,32 +97,29 @@ export default function DevicesPage() {
   return (
     <div className="p-4 md:p-8 space-y-8 animate-in slide-in-from-bottom-4 duration-700 bg-background min-h-screen">
       {/* Network Header */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
-        <div className="space-y-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 px-4 rounded-lg bg-card border border-border text-[9px] font-bold uppercase tracking-widest text-white/70 hover:text-primary hover:border-primary transition-all font-display"
-            onClick={() => navigate(cityParam ? `/dashboard/labs?city=${cityParam}` : '/dashboard/cities')}
-          >
-            <ArrowLeft className="w-3 h-3 mr-2" /> Back to Hierarchy
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight uppercase text-white font-display leading-none">
-              {statusFilter === 'offline_7d' ? '7 DAYS+ OFFLINE' :
-                statusFilter === 'offline_30d' ? 'ONE MONTH+ OFFLINE' :
-                  labParam ? `${labParam}` : (cityParam ? cityParam : "LABWISE")} <span className="text-white/80">SYSTEM</span>
-            </h1>
-
-            <p className="text-white font-bold mt-2 uppercase tracking-wider text-[10px]">
-              {statusFilter === 'offline_7d' ? 'Viewing units offline for 7 days or more' :
-                statusFilter === 'offline_30d' ? 'Viewing units offline for 30 days or more' :
-                  cityParam && labParam ? `${cityParam.toUpperCase()} / ${labParam.toUpperCase()} SYSTEM` : "Comprehensive System Monitoring & Asset Management"}
-            </p>
+      <header className="pb-6 border-b border-border space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-3 rounded-lg bg-card border border-border text-[9px] font-bold uppercase tracking-widest text-white/70 hover:text-primary hover:border-primary transition-all font-display"
+              onClick={() => navigate(labParam ? `/dashboard/labs?city=${cityParam}&tehsil=${tehsilParam}` : cityParam ? `/dashboard/tehsils?city=${cityParam}` : '/dashboard/cities')}
+            >
+              <ArrowLeft className="w-3 h-3 mr-2" /> Back to Hierarchy
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight uppercase text-white font-display leading-tight max-w-4xl">
+                {statusFilter === 'offline_7d' ? '7 DAYS+ OFFLINE' :
+                  statusFilter === 'offline_30d' ? 'ONE MONTH+ OFFLINE' :
+                    labParam ? labParam : (cityParam ? cityParam : "LABWISE")} <span className="text-white/80">SYSTEM</span>
+              </h1>
+              <p className="text-white/40 font-bold uppercase tracking-wider text-[9px] mt-1">
+                {cityParam && labParam ? `${cityParam} / ${tehsilParam || 'GENERAL'} / ${labParam}` : "System Monitoring & Asset Management"}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4">
           <Button
             onClick={async () => {
               const toastId = toast.loading(`Synthesizing audit for ${labParam || cityParam || 'Fleet'}...`);
@@ -137,14 +136,16 @@ export default function DevicesPage() {
                 toast.error("Audit Generation Failed", { id: toastId });
               }
             }}
-            className="bg-white hover:bg-white/90 text-black gap-2 px-6 rounded-lg h-10 text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm"
+            className="bg-white hover:bg-white/90 text-black gap-2 px-6 rounded-lg h-10 text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm shrink-0"
           >
             <Monitor size={16} className="text-black" />
             Generate Facility Audit
           </Button>
+        </div>
 
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4 pt-2">
           {/* Segmented Control for Status */}
-          <div className="flex p-1 rounded-lg bg-card border border-border shadow-sm">
+          <div className="flex p-1 rounded-lg bg-card border border-border shadow-sm w-full lg:w-auto">
             {[
               { id: 'all', label: 'All Units', color: 'text-primary' },
               { id: 'online', label: 'Online', color: 'text-emerald-600' },
@@ -154,7 +155,7 @@ export default function DevicesPage() {
                 key={f.id}
                 onClick={() => setStatusFilter(f.id as any)}
                 className={cn(
-                  "px-4 py-2 rounded-md text-[9px] font-bold uppercase tracking-widest transition-all",
+                  "flex-1 lg:px-6 py-2 rounded-md text-[9px] font-bold uppercase tracking-widest transition-all",
                   (statusFilter === f.id || (f.id === 'offline' && (statusFilter === 'offline_7d' || statusFilter === 'offline_30d')))
                     ? "bg-primary text-black shadow-sm"
                     : cn("text-white/60 hover:text-white hover:bg-muted/50")
@@ -165,11 +166,11 @@ export default function DevicesPage() {
             ))}
           </div>
 
-          <div className="relative w-full sm:w-72 group">
+          <div className="relative w-full lg:w-96 group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-all w-4 h-4" />
             <Input
-              placeholder="SEARCH BY SYSTEM ID..."
-              className="pl-12 bg-card border-border focus:ring-1 focus:ring-primary text-[10px] font-bold uppercase tracking-wider h-10 rounded-lg transition-all"
+              placeholder="SEARCH BY SYSTEM ID OR NAME..."
+              className="pl-12 bg-card border-border focus:ring-1 focus:ring-primary text-[10px] font-bold uppercase tracking-wider h-11 rounded-lg transition-all"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />

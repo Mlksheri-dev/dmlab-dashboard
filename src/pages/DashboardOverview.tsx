@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '@/lib/api';
@@ -27,21 +28,39 @@ export default function DashboardOverview() {
 
 
 
-  const { data: locResponse, isLoading: locLoading } = useQuery({
-    queryKey: ['location-stats'],
-    queryFn: () => apiFetch('/stats/locations'),
+  const { data: statsData, isLoading: loading } = useQuery({
+    queryKey: ['global-lab-stats'],
+    queryFn: () => apiFetch('/stats/labs/all'),
     refetchInterval: 10000,
   });
 
-  const locations = locResponse?.locations || [];
+  const locations = useMemo(() => {
+    const labs = Array.isArray(statsData?.labs) ? statsData.labs : [];
+    const cityMap = new Map<string, any>();
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['stats-overview'],
-    queryFn: () => apiFetch('/stats/overview'),
-    refetchInterval: 10000,
-  });
+    labs.forEach((lab: any) => {
+      const city = lab.city || 'Unknown';
+      if (!cityMap.has(city)) {
+        cityMap.set(city, {
+          city,
+          total_pcs: 0,
+          online: 0,
+          total_labs: 0,
+          tehsils: new Set()
+        });
+      }
+      const target = cityMap.get(city);
+      target.total_pcs += Number(lab.total_pcs || 0);
+      target.online += Number(lab.online || 0);
+      target.total_labs += 1;
+      if (lab.tehsil) target.tehsils.add(lab.tehsil);
+    });
 
-  const loading = locLoading || statsLoading;
+    return Array.from(cityMap.values()).map(loc => ({
+      ...loc,
+      total_tehsils: loc.tehsils.size || 1 // Fallback to 1 if no tehsil specified
+    })).sort((a, b) => b.total_pcs - a.total_pcs);
+  }, [statsData]);
 
   return (
     <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-700 bg-background min-h-screen">
@@ -54,7 +73,7 @@ export default function DashboardOverview() {
         </div>
 
         <Button
-          onClick={() => handleGenerateReport(stats, locations)}
+          onClick={() => handleGenerateReport(null, locations)}
           className="bg-white hover:bg-white/90 text-black gap-2 px-6 rounded-lg h-10 text-[10px] font-bold uppercase tracking-widest transition-all shadow-sm"
         >
           <FileText size={16} className="text-black" />
@@ -63,33 +82,7 @@ export default function DashboardOverview() {
       </header>
 
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {loading ? (
-          [...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)
-        ) : (
-          <>
-            <div onClick={() => navigate('/dashboard/cities')} className="cursor-pointer">
-              <StatsCard title="Total Cities" value={locations.length} icon={Globe} variant="blue" />
-            </div>
-            <div onClick={() => navigate('/dashboard/devices?status=online')} className="cursor-pointer">
-              <StatsCard title="Online PCs" value={stats?.online_devices || 0} icon={Wifi} variant="yellow" />
-            </div>
-            <div onClick={() => navigate('/dashboard/devices?status=offline')} className="cursor-pointer">
-              <StatsCard title="Offline PCs" value={stats?.offline_devices || 0} icon={WifiOff} variant="blue" />
-            </div>
-            <div className="bg-card border border-border rounded-2xl p-6 flex items-center gap-4 shadow-sm hover:shadow-md transition-all">
-              <div className="p-3 rounded-lg bg-primary/10 text-primary">
-                <Activity size={24} />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-white/60 uppercase tracking-wider mb-0.5">System Health</p>
-                <p className="text-2xl font-bold text-white tracking-tight">98<span className="text-white/60">%</span></p>
-                <p className="text-[8px] font-bold text-emerald-400 uppercase tracking-widest">Optimal</p>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+      {/* Summary cards removed per user request */}
 
       <section className="space-y-6">
         <div className="flex items-center justify-between">
@@ -97,10 +90,10 @@ export default function DashboardOverview() {
             <div className="p-2 rounded-lg bg-primary text-white">
               <LayoutGrid size={20} />
             </div>
-            <h2 className="text-xl font-bold tracking-tight uppercase text-white font-display">Regional Nodes</h2>
+            <h2 className="text-xl font-bold tracking-tight uppercase text-white font-display">District Nodes</h2>
           </div>
           <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest bg-card py-1.5 px-4 rounded-lg border border-border shadow-sm">
-            {locations.length} ACTIVE REGIONS
+            {locations.length} ACTIVE DISTRICTS
           </span>
         </div>
 
@@ -114,12 +107,11 @@ export default function DashboardOverview() {
               if (!loc) return null;
               const online = loc.online || 0;
               const total = loc.total_pcs || 0;
-              const intensity = Math.max(0.1, (total > 0 ? (online / total) : 0));
 
               return (
                 <Card
                   key={loc.city}
-                  onClick={() => navigate(`/dashboard/devices?city=${loc.city}`)}
+                  onClick={() => navigate(`/dashboard/tehsils?city=${loc.city}`)}
                   className="group relative overflow-hidden bg-card cursor-pointer border border-border hover:border-primary/40 transition-all hover:translate-y-[-4px] shadow-sm hover:shadow-lg rounded-2xl min-h-[200px]"
                 >
                   <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
@@ -133,8 +125,8 @@ export default function DashboardOverview() {
 
                     <div className="flex items-end justify-between border-t border-border pt-4">
                       <div className="flex items-baseline gap-1.5">
-                        <span className="text-2xl font-bold text-white tracking-tight">{total}</span>
-                        <span className="text-[9px] font-bold text-white/60 uppercase tracking-wider">Total</span>
+                        <span className="text-2xl font-bold text-white tracking-tight">{loc.total_tehsils || 0}</span>
+                        <span className="text-[9px] font-bold text-white/60 uppercase tracking-wider">Total Tehsil</span>
                       </div>
                       <div className="flex items-baseline gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                         <span className="text-xl font-bold text-emerald-400 tracking-tight">{online}</span>

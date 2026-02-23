@@ -41,7 +41,7 @@ export default function PCDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({ pc_name: '', city: '', lab_name: '' });
+  const [editData, setEditData] = useState({ pc_name: '', city: '', lab_name: '', tehsil: '' });
   // selectedHistory state removed as we now navigate to a full page
   const [isLocallyDefective, setIsLocallyDefective] = useState(false);
   const [showDefectiveSuccess, setShowDefectiveSuccess] = useState(false);
@@ -107,7 +107,7 @@ export default function PCDetailPage() {
         pc_name: detail.device.pc_name || '',
         city: detail.device.city || '',
         lab_name: detail.device.lab_name || '',
-        college: detail.device.college || ''
+        tehsil: detail.device.tehsil || ''
       });
     }
   }, [detail]);
@@ -129,7 +129,7 @@ export default function PCDetailPage() {
         pc_name: data.pc_name,
         city: data.city,
         lab_name: data.lab_name,
-        college: data.college // Sending college to backend
+        tehsil: data.tehsil // Sending tehsil to backend
       })
     }),
     onSuccess: () => {
@@ -339,7 +339,7 @@ export default function PCDetailPage() {
                     <MapPin size={22} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">Assigned Region</p>
+                    <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">DISTRICT</p>
                     {isEditing ? (
                       <select
                         className="mt-2 w-full bg-card border border-border text-primary text-xs rounded-lg p-2.5 outline-none focus:ring-1 focus:ring-primary shadow-sm"
@@ -363,7 +363,7 @@ export default function PCDetailPage() {
                     <Beaker size={22} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">Facility Cluster</p>
+                    <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">LAB NAME</p>
                     {isEditing ? (
                       <select
                         className="mt-2 w-full bg-card border border-border text-primary text-xs rounded-lg p-2.5 outline-none focus:ring-1 focus:ring-primary shadow-sm"
@@ -386,16 +386,16 @@ export default function PCDetailPage() {
                     <School size={22} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">Institution / College</p>
+                    <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider">Tehsil</p>
                     {isEditing ? (
                       <input
                         className="mt-2 w-full bg-card border border-border text-primary text-xs rounded-lg p-2.5 outline-none focus:ring-1 focus:ring-primary shadow-sm uppercase font-bold"
-                        value={editData.college || ''}
-                        onChange={(e) => setEditData({ ...editData, college: e.target.value })}
-                        placeholder="ENTER COLLEGE NAME"
+                        value={editData.tehsil || ''}
+                        onChange={(e) => setEditData({ ...editData, tehsil: e.target.value })}
+                        placeholder="ENTER TEHSIL NAME"
                       />
                     ) : (
-                      <p className="font-bold text-xl uppercase tracking-tight text-primary mt-0.5">{device.college || 'Not Assigned'}</p>
+                      <p className="font-bold text-xl uppercase tracking-tight text-primary mt-0.5">{device.tehsil || 'Not Assigned'}</p>
                     )}
                   </div>
                 </div>

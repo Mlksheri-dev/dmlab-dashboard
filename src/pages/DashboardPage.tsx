@@ -27,7 +27,10 @@ const CustomTooltip = ({ active, payload, centerViewMode }: any) => {
         const isCityEntry = !["Online Labs", "Offline Labs", "Online PCs", "Offline PCs"].includes(data.name);
         let valueSuffix = "";
         if (isCityEntry) {
-            valueSuffix = centerViewMode === 'pc' ? " PCs" : " Labs";
+            if (centerViewMode === 'pc') valueSuffix = " PCs";
+            else if (centerViewMode === 'tehsil') valueSuffix = " Labs";
+            else if (centerViewMode === 'labs') valueSuffix = " Labs";
+            else valueSuffix = " Tehsils"; // district mode — show tehsils per district
         }
 
         return (
@@ -60,7 +63,7 @@ export default function DashboardPage() {
         refetchInterval: 10000,
     });
 
-    const centerViewMode = (searchParams.get('centerView') as 'district' | 'labs' | 'pc') || 'district';
+    const centerViewMode = (searchParams.get('centerView') as 'district' | 'tehsil' | 'labs' | 'pc') || 'district';
     const viewMode = (searchParams.get('view') as 'status' | 'online' | 'offline') || 'status';
     const pcViewMode = (searchParams.get('pcView') as 'status' | 'online' | 'offline') || 'status';
 
@@ -130,28 +133,48 @@ export default function DashboardPage() {
     const safeStatusChartData = totalLabs > 0 ? statusChartData : [{ name: "No Data", value: 1, color: "#1e293b" }];
     const safePcStatusChartData = totalPCs > 0 ? pcStatusChartData : [{ name: "No Data", value: 1, color: "#1e293b" }];
 
-    // --- VIEW 3: CITY DISTRIBUTION (Center) ---
-    // Aggregate by City: Count of Labs and Sum of PCs
-    const cityStatsMap = new Map<string, { labCount: number, pcCount: number }>();
+    // --- VIEW 3: DISTRIBUTION (Center) ---
+    const statsMap = new Map<string, { labCount: number, pcCount: number, tehsilSet: Set<string> }>();
+    const uniqueTehsils = new Set<string>();
+    const cityStatsMap = new Map<string, any>();
+
     labs.forEach((l: any) => {
         const city = l.city || 'Unknown';
-        const current = cityStatsMap.get(city) || { labCount: 0, pcCount: 0 };
-        cityStatsMap.set(city, {
+        const tehsil = l.tehsil || 'Unknown';
+        uniqueTehsils.add(`${city}|${tehsil}`);
+        cityStatsMap.set(city, true);
+
+        const groupKey = centerViewMode === 'tehsil' ? tehsil : city;
+        const current = statsMap.get(groupKey) || { labCount: 0, pcCount: 0, tehsilSet: new Set<string>() };
+        current.tehsilSet.add(tehsil);
+        statsMap.set(groupKey, {
             labCount: current.labCount + 1,
-            pcCount: current.pcCount + Number(l.total_pcs || 0)
+            pcCount: current.pcCount + Number(l.total_pcs || 0),
+            tehsilSet: current.tehsilSet
         });
     });
 
     const totalCities = cityStatsMap.size;
-    const cityChartData = Array.from(cityStatsMap.entries()).map(([name, stats], index) => ({
+    const totalTehsils = uniqueTehsils.size;
+
+    const chartData = Array.from(statsMap.entries()).map(([name, stats], index) => ({
         name,
-        value: centerViewMode === 'pc' ? stats.pcCount : stats.labCount,
+        value:
+            centerViewMode === 'pc' ? stats.pcCount :
+                centerViewMode === 'district' ? stats.tehsilSet.size :  // DISTRICT → tehsils per district
+                    stats.labCount,                                          // labs / tehsil → lab count
         color: COLORS[index % COLORS.length]
     }));
 
-    const safeCityChartData = cityChartData.length > 0 ? cityChartData : [{ name: "No Data", value: 1, color: "#1e293b" }];
-    const centerDisplayTotal = centerViewMode === 'pc' ? totalPCs : (centerViewMode === 'labs' ? totalLabs : totalCities);
-    const centerDisplayLabel = centerViewMode === 'pc' ? 'PCs' : (centerViewMode === 'labs' ? 'Labs' : 'Districts');
+    const safeCityChartData = chartData.length > 0 ? chartData : [{ name: "No Data", value: 1, color: "#1e293b" }];
+    const centerDisplayTotal =
+        centerViewMode === 'pc' ? totalPCs :
+            (centerViewMode === 'labs' ? totalLabs :
+                (centerViewMode === 'tehsil' ? totalTehsils : totalCities));
+    const centerDisplayLabel =
+        centerViewMode === 'pc' ? 'PCs' :
+            (centerViewMode === 'labs' ? 'Labs' :
+                (centerViewMode === 'tehsil' ? 'Tehsils' : 'Districts'));
 
 
     // --- LEFT CHART HANDLERS ---
@@ -168,6 +191,9 @@ export default function DashboardPage() {
         if (entry.name === "No Data") return;
         if (centerViewMode === 'pc') {
             navigate(`/dashboard/devices?city=${entry.name}`);
+        } else if (centerViewMode === 'tehsil') {
+            // Navigate to labs page filtered by this specific tehsil
+            navigate(`/dashboard/labs?tehsil=${entry.name}`);
         } else {
             // For both 'district' and 'labs' view, show labs for that city
             navigate(`/dashboard/labs?city=${entry.name}`);
@@ -259,6 +285,15 @@ export default function DashboardPage() {
                                 }`}
                         >
                             DISTRICT
+                        </button>
+                        <button
+                            onClick={() => setCenterViewMode('tehsil')}
+                            className={`px-6 py-2.5 rounded-xl font-bold text-sm tracking-wider transition-all duration-300 border ${centerViewMode === 'tehsil'
+                                ? 'bg-[#7c4dff] text-white border-[#7c4dff] shadow-[0_0_20px_rgba(124,77,255,0.4)] scale-105'
+                                : 'bg-transparent text-[#7c4dff] border-[#7c4dff]/30 hover:border-[#7c4dff] hover:bg-[#7c4dff]/10'
+                                }`}
+                        >
+                            TEHSIL
                         </button>
                         <button
                             onClick={() => setCenterViewMode('labs')}

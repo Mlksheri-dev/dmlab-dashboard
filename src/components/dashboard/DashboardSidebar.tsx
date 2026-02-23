@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Monitor, LogOut, Menu, X, Globe, ShieldCheck, Beaker, Activity, Zap } from 'lucide-react';
+import { LayoutDashboard, Monitor, LogOut, Menu, X, Globe, ShieldCheck, Beaker, Activity } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -9,11 +9,10 @@ import { GeneratePDFDialog } from './GeneratePDFDialog';
 
 const navItems = [
   { to: '/dashboard/analytics', icon: Activity, label: 'DASHBOARD' },
-  { to: '/dashboard/utilization', icon: Zap, label: 'UTILIZATION' },
   // { to: '/dashboard', icon: Beaker, label: 'LAB DASHBOARD' },
   { to: '/dashboard/overview', icon: LayoutDashboard, label: 'DISTRICTWISE' },
-  { to: '/dashboard/cities', icon: Globe, label: 'DISTRICTWISE LAB' },
-  { to: '/dashboard/devices', icon: Monitor, label: 'LABWISE SYSTEM' },
+  { to: '/dashboard/cities', icon: Globe, label: 'TEHSILWISE LAB' },
+  { to: '/dashboard/labs', icon: Monitor, label: 'LABWISE SYSTEM' },
 ];
 
 interface DashboardSidebarProps {
@@ -64,7 +63,7 @@ export function DashboardSidebar({ isOpen, setIsOpen, isMobile }: DashboardSideb
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
-            <NavLink to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center shrink-0 shadow-sm">
                 <ShieldCheck className="w-6 h-6 text-black" />
               </div>
@@ -72,7 +71,7 @@ export function DashboardSidebar({ isOpen, setIsOpen, isMobile }: DashboardSideb
                 <h1 className="font-bold text-lg text-white tracking-tight font-display leading-tight uppercase">Lab</h1>
                 <p className="text-[10px] font-bold text-white uppercase tracking-widest mt-0.5 whitespace-nowrap">Monitoring</p>
               </div>
-            </NavLink>
+            </div>
             <Button
               variant="ghost"
               size="icon"

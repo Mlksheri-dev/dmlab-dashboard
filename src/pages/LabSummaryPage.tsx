@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { apiFetch } from '@/lib/api';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Monitor, Wifi, WifiOff, Activity, Shield, Terminal, ArrowRight, Target, Zap, Waves, FileText } from "lucide-react";
+import { ArrowLeft, Monitor, Wifi, WifiOff, Terminal, ArrowRight, Target, Zap, FileText } from "lucide-react";
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from "@/lib/utils";
 import { MiniWaveChart } from '@/components/dashboard/MiniWaveChart';
@@ -154,7 +154,7 @@ const LabSummaryPage = () => {
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-border">
                 <div className="flex items-center gap-6">
                     <Button
-                        onClick={() => navigate(`/dashboard?city=${city}`)}
+                        onClick={() => navigate(`/dashboard/labs?city=${city}`)}
                         variant="ghost"
                         size="icon"
                         className="bg-card border border-border hover:bg-muted rounded-lg w-12 h-12 flex items-center justify-center group transition-all shadow-sm"
@@ -163,24 +163,49 @@ const LabSummaryPage = () => {
                     </Button>
                     <div>
                         <div className="flex items-center gap-3 mb-1">
-                            <span className="text-[10px] font-bold text-white uppercase tracking-widest">Regional Facility Portal</span>
+                            <span className="text-[10px] font-bold text-white uppercase tracking-widest">Lab Overview</span>
                             <div className="w-1 h-1 bg-secondary rounded-full" />
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{city} Region</span>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{city} District</span>
                         </div>
                         <h1 className="text-3xl font-bold tracking-tight uppercase text-white font-display leading-tight">
-                            {lab} <span className="text-white/80">System</span>
+                            {lab} <span className="text-white/80">Summary</span>
                         </h1>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-6">
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* QUICK NAV BUTTONS - TOP */}
+                    <Button
+                        onClick={() => navigate(`/dashboard/devices?city=${city}&lab=${lab}`)}
+                        className="bg-primary hover:bg-primary/90 text-black gap-2 px-4 rounded-lg h-9 text-[9px] font-bold uppercase tracking-widest transition-all shadow-sm"
+                    >
+                        <ArrowRight size={13} />
+                        View All Systems
+                    </Button>
+                    <Button
+                        onClick={() => navigate(`/dashboard/devices?city=${city}&lab=${lab}&status=online`)}
+                        variant="outline"
+                        className="gap-2 px-4 rounded-lg h-9 text-[9px] font-bold uppercase tracking-widest text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 transition-all"
+                    >
+                        <Wifi size={13} />
+                        View Online
+                    </Button>
+                    <Button
+                        onClick={() => navigate(`/dashboard/devices?city=${city}&lab=${lab}&status=offline`)}
+                        variant="outline"
+                        className="gap-2 px-4 rounded-lg h-9 text-[9px] font-bold uppercase tracking-widest text-red-400 border-red-500/30 hover:bg-red-500/10 transition-all"
+                    >
+                        <WifiOff size={13} />
+                        View Offline
+                    </Button>
+
+                    <div className="w-px h-8 bg-border mx-1" />
+
                     <Button
                         onClick={async () => {
                             const toastId = (await import('sonner')).toast.loading(`Synthesizing audit for ${lab}...`);
                             try {
                                 const { generateDynamicReport } = await import('@/lib/pdf-generator');
-                                // Fetch detailed inventory to include in the report
-                                // processDevices is already available in scope and has the latest defective status
                                 await generateDynamicReport('LAB', {
                                     ...labData,
                                     devices: processedDevices
@@ -191,27 +216,11 @@ const LabSummaryPage = () => {
                                 (await import('sonner')).toast.error("Audit Generation Failed", { id: toastId });
                             }
                         }}
-                        className="bg-white hover:bg-white/90 text-black gap-3 px-6 rounded-lg h-12 text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg"
+                        className="bg-white hover:bg-white/90 text-black gap-2 px-4 rounded-lg h-9 text-[9px] font-bold uppercase tracking-widest transition-all shadow-lg"
                     >
-                        <FileText size={16} />
+                        <FileText size={13} />
                         Generate Excel
                     </Button>
-
-                    <div className="hidden lg:flex items-center gap-8">
-                        {[
-                            { label: "Uptime Stability", value: "99.9%", icon: Activity },
-                            { label: "Network Status", value: "SECURE", icon: Shield },
-                            { label: "Warning Nodes", value: labData?.offline_30d || 0, icon: Target },
-                        ].map((m, i) => (
-                            <div key={i} className="flex flex-col items-end">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <m.icon size={12} className="text-primary" />
-                                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">{m.label}</span>
-                                </div>
-                                <span className="text-sm font-bold uppercase tracking-tight text-primary">{m.value}</span>
-                            </div>
-                        ))}
-                    </div>
                 </div>
             </div>
 
@@ -269,7 +278,6 @@ const LabSummaryPage = () => {
                     ))}
                 </div>
             </div>
-
 
         </div>
     );

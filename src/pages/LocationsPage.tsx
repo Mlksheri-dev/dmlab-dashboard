@@ -2,11 +2,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiFetch } from '@/lib/api';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, Search, MoreVertical, Edit2, Trash2 } from 'lucide-react';
+import { MapPin, Search, MoreVertical, Edit2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { MiniWaveChart } from '@/components/dashboard/MiniWaveChart';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -23,76 +22,62 @@ export default function LocationsPage() {
     const status = searchParams.get('status');
 
     const { data: response, isLoading } = useQuery({
-        queryKey: ['location-stats'],
-        queryFn: () => apiFetch('/stats/locations'),
+        queryKey: ['tehsil-stats-global'],
+        queryFn: () => apiFetch('/stats/tehsils'),
         refetchInterval: 10000,
         staleTime: 5000,
         gcTime: 30000
     });
 
-    const locations = response?.locations || [];
+    const tehsils = Array.isArray(response?.tehsils) ? response.tehsils : [];
 
-    const handleRenameCity = async (e: React.MouseEvent, oldName: string) => {
+    // DEBUG: Log the fetched data for verification
+    console.log("Tehsil Data Fetched:", tehsils);
+
+    const handleRenameTehsil = async (e: React.MouseEvent, oldName: string, cityName: string) => {
         e.stopPropagation();
-        const newName = prompt("Enter new name for city:", oldName);
+        const newName = prompt("Enter new name for tehsil:", oldName);
         if (!newName || newName === oldName) return;
         try {
-            await apiFetch('/stats/city/rename', {
+            await apiFetch('/stats/tehsil/rename', {
                 method: 'PATCH',
-                body: JSON.stringify({ old_name: oldName, new_name: newName })
+                body: JSON.stringify({ city: cityName, old_name: oldName, new_name: newName })
             });
-            toast.success(`City renamed to ${newName}`);
-            queryClient.invalidateQueries({ queryKey: ['location-stats'] });
+            toast.success(`Tehsil renamed to ${newName}`);
+            queryClient.invalidateQueries({ queryKey: ['tehsil-stats-global'] });
         } catch (err) {
-            toast.error("Failed to rename city");
+            toast.error("Failed to rename tehsil");
         }
     };
 
-    const handleDeleteCity = async (e: React.MouseEvent, cityName: string) => {
-        e.stopPropagation();
-        if (!confirm(`Are you sure you want to delete ${cityName}?`)) return;
-        try {
-            await apiFetch(`/stats/city/delete?city=${cityName}`, { method: 'DELETE' });
-            toast.success(`${cityName} deleted.`);
-            queryClient.invalidateQueries({ queryKey: ['location-stats'] });
-        } catch (err) {
-            toast.error("Failed to delete city");
-        }
-    };
+    const filteredTehsils = tehsils
+        .filter((t: any) => {
+            const tName = (t?.tehsil || '').toLowerCase();
+            const cName = (t?.city || '').toLowerCase();
+            const sTerm = searchTerm.toLowerCase();
 
-    const filteredLocations = locations
-        .filter((loc: any) => {
-            const matchesSearch = loc.city.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesSearch = tName.includes(sTerm) || cName.includes(sTerm);
+
             let matchesStatus = true;
             if (status === 'online') {
-                matchesStatus = (loc.online || 0) > 0;
+                matchesStatus = (t.online || 0) > 0;
             } else if (status === 'offline') {
-                // "Offline Cities" could mean totally offline or containing offline labs. 
-                // Given the simplistic city stats, we'll assume cities with ANY offline units or low connectivity?
-                // Or standard strict offline? 
-                // Let's stick to strict "No Online" for consistency, OR match Dashboard logic?
-                // Dashboard Online = Labs with online > 0.
-                // Dashboard Offline = Labs with online == 0.
-                // If we want "Offline Labs city wise", we want cities that contain offline labs.
-                // BUT we don't have that per-lab info here easily without iterating.
-                // Let's stick to a simple View filter for now:
-                // If Status is Offline, show cities that are "Offline" (online == 0).
-                matchesStatus = (loc.online || 0) === 0;
+                matchesStatus = (t.online || 0) === 0;
             }
             return matchesSearch && matchesStatus;
         })
-        .sort((a: any, b: any) => (b.total_pcs || 0) - (a.total_pcs || 0)); // Highest capacity first
+        .sort((a: any, b: any) => (b.total_labs || 0) - (a.total_labs || 0));
 
     return (
         <div className="p-4 md:p-8 space-y-8 animate-in slide-in-from-right-4 duration-700 bg-background min-h-screen">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight uppercase text-white font-display">
-                        {status ? `${status} CITIES` : 'DISTRICTWISE LAB'}
+                        {status ? `${status} TEHSILS` : 'TEHSILWISE LAB'}
                     </h1>
 
                     <p className="text-white font-bold mt-1 uppercase tracking-wider text-[10px]">
-                        {status === 'online' ? 'Active Regional Hubs' : status === 'offline' ? 'Inactive Regional Hubs' : 'Distribution of Institutional Computing Resources'}
+                        {status === 'online' ? 'Active Tehsil Hubs' : status === 'offline' ? 'Inactive Tehsil Hubs' : 'Distribution of Institutional Computing Resources across Tehsils'}
                     </p>
                 </div>
 
@@ -100,7 +85,7 @@ export default function LocationsPage() {
                     <div className="relative w-full md:w-80 group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-all" />
                         <Input
-                            placeholder="SEARCH BY CITY..."
+                            placeholder="SEARCH BY TEHSIL OR CITY..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-12 bg-card border-border focus:ring-1 focus:ring-primary text-[10px] font-bold uppercase tracking-wider h-10 rounded-lg transition-all shadow-sm"
@@ -113,23 +98,21 @@ export default function LocationsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-64 rounded-2xl" />)}
                 </div>
-            ) : filteredLocations.length === 0 ? (
+            ) : filteredTehsils.length === 0 ? (
                 <div className="p-20 text-center bg-card border border-dashed border-border rounded-2xl shadow-sm">
                     <MapPin className="w-16 h-16 text-muted-foreground mx-auto mb-6 opacity-20" />
-                    <h3 className="text-xl font-bold text-primary uppercase tracking-tight">No Active Hubs Detected</h3>
+                    <h3 className="text-xl font-bold text-primary uppercase tracking-tight">No Active Tehsils Detected</h3>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {filteredLocations.map((loc: any) => {
-                        const total = loc.total_pcs || 0;
-                        const online = loc.online || 0;
-                        const onlinePercent = total > 0 ? (online / total) * 100 : 0;
-                        const intensity = Math.max(0.1, onlinePercent / 100);
+                    {filteredTehsils.map((t: any) => {
+                        const totalLabs = t.total_labs || 0;
+                        const online = t.online || 0;
 
                         return (
                             <Card
-                                key={loc.city}
-                                onClick={() => navigate(`/dashboard/labs?city=${loc.city}`)}
+                                key={`${t.city}-${t.tehsil}`}
+                                onClick={() => navigate(`/dashboard/labs?city=${t.city}&tehsil=${t.tehsil}`)}
                                 className="group relative overflow-hidden bg-card cursor-pointer border border-border hover:border-primary/40 transition-all hover:translate-y-[-4px] shadow-sm hover:shadow-lg rounded-2xl min-h-[200px]"
                             >
                                 <CardContent className="p-6 flex flex-col justify-between h-full space-y-4">
@@ -138,9 +121,12 @@ export default function LocationsPage() {
                                             <div className="p-2.5 rounded-lg bg-primary text-black shrink-0 shadow-sm">
                                                 <MapPin size={16} />
                                             </div>
-                                            <h2 className="text-lg font-bold tracking-tight uppercase text-white transition-colors truncate">
-                                                {loc.city}
-                                            </h2>
+                                            <div className="overflow-hidden">
+                                                <h2 className="text-lg font-bold tracking-tight uppercase text-white transition-colors truncate">
+                                                    {t.tehsil}
+                                                </h2>
+                                                <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{t.city}</p>
+                                            </div>
                                         </div>
 
                                         <DropdownMenu>
@@ -150,11 +136,8 @@ export default function LocationsPage() {
                                                 </button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="bg-card border border-border rounded-lg p-1.5 shadow-xl">
-                                                <DropdownMenuItem onClick={(e) => handleRenameCity(e, loc.city)} className="gap-2 text-[10px] font-bold uppercase p-2 rounded-md transition-colors text-white">
-                                                    <Edit2 size={12} className="text-primary" /> Rename Hub
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={(e) => handleDeleteCity(e, loc.city)} className="gap-2 text-red-600 text-[10px] font-bold uppercase p-2 rounded-md transition-colors">
-                                                    <Trash2 size={12} /> Delete Hub
+                                                <DropdownMenuItem onClick={(e) => handleRenameTehsil(e, t.tehsil, t.city)} className="gap-2 text-[10px] font-bold uppercase p-2 rounded-md transition-colors text-white">
+                                                    <Edit2 size={12} className="text-primary" /> Rename Tehsil
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
@@ -163,8 +146,8 @@ export default function LocationsPage() {
 
                                     <div className="flex items-end justify-between border-t border-border pt-4">
                                         <div className="flex items-baseline gap-1.5">
-                                            <span className="text-2xl font-bold text-white tracking-tight">{total}</span>
-                                            <span className="text-[9px] font-bold text-white/60 uppercase tracking-wider">Total Units</span>
+                                            <span className="text-2xl font-bold text-white tracking-tight">{totalLabs}</span>
+                                            <span className="text-[9px] font-bold text-white/60 uppercase tracking-wider">Total Labs</span>
                                         </div>
                                         <div className="flex items-baseline gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-sm">
                                             <span className="text-xl font-bold text-emerald-400 tracking-tight">{online}</span>
